@@ -45,13 +45,13 @@ class DefectInfo:
     Just used to hold attributes
     """
 
-    interesting_attributes = ['id']
     interesting_fields = ['created',
                           'resolutiondate',
                           'resolution',
                           'assignee',
                           'summary',
                           'status',
+                          'priority',
                           'project',
                           'reporter',
                           'updated']

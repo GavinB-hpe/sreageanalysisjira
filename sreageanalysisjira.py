@@ -36,7 +36,7 @@ app.title = "SRE Age Analysis - JIRA version"
 PORT = 8154
 DEFAULT_HIST_BUCKET_SIZE = 14
 
-def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="Severity"):
+def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="priority"):
     hours_per_day = 24
     ages = {}
     ages_lists = {}
@@ -53,8 +53,8 @@ def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="Severity"):
             ages[val] = d.Age
             ages_lists[val] = [int(d.Age / hours_per_day)]
     # at this point I have
-    # counts = a count of cases per severity, and
-    # ages =  an overall sum of ages (in hours) per severity, and
+    # counts = a count of cases per priority, and
+    # ages =  an overall sum of ages (in hours) per priority, and
     # ages_lists = a list of ages in days
     assert len(defects) == sum([counts[k] for k in counts.keys()])
     for k in counts.keys():
@@ -164,14 +164,14 @@ def build_page():
                     html.Tr([
                         html.Td(
                             dcc.Dropdown(
-                                id='severity-dropdown',
+                                id='priority-dropdown',
                                 options=[
-                                    {'label': 'Minor', 'value': 'Minor'},
-                                    {'label': 'Moderate', 'value': 'Moderate'},
-                                    {'label': 'Severe', 'value': 'Severe'},
-                                    {'label': 'Catastrophic', 'value': 'Catastrophic'},
+                                    {'label': 'Low', 'value': 'Low'},
+                                    {'label': 'Medium', 'value': 'Medium'},
+                                    {'label': 'High', 'value': 'High'},
+                                    {'label': 'Critical', 'value': 'Critical'},
                                 ],
-                                value=['Minor', 'Moderate', 'Severe', 'Catastrophic'],
+                                value=['Low', 'Medium', 'High', 'Critical'],
                                 multi=True
                             )
                         )
@@ -196,10 +196,10 @@ def build_page():
 
 app.layout = build_page()
 
-def get_per_project_data(defects, severity):
+def get_per_project_data(defects, priority):
     db = {}
     for d in defects:
-        if d.Severity in severity:
+        if d.priority in priority:
             proj = d.Project
             if db.get(proj) is None:
                 db[proj] = 1
@@ -212,10 +212,10 @@ def get_per_project_data(defects, severity):
     })
 
 
-def get_per_state_data(defects, severity):
+def get_per_state_data(defects, priority):
     db = {}
     for d in defects:
-        if d.Severity in severity:
+        if d.priority in priority:
             state = d.State
             if db.get(state) is None:
                 db[state] = 1
@@ -239,9 +239,9 @@ def get_per_state_data(defects, severity):
     [Input(component_id='bucketsize-slider', component_property='value'),
      Input(component_id='fixed-dropdown', component_property='value'),
      Input(component_id='sentry-choice-dropdown', component_property='value'),
-     Input(component_id='severity-dropdown', component_property='value')]
+     Input(component_id='priority-dropdown', component_property='value')]
 )
-def update(bucketsize, which, sentry_choice, severity):
+def update(bucketsize, which, sentry_choice, priority):
     if which == FIXED:
         if sentry_choice == TR1_DEFECTS:
             graph_title = "Age of unfixed {} TR1 defects. Total = {}."
@@ -256,18 +256,18 @@ def update(bucketsize, which, sentry_choice, severity):
             graph_title = "Age of non-closed {} FTCSales defects. Total = {}."
         if sentry_choice == ALL_DEFECTS:
             graph_title = "Age of non-closed {} defects. Total = {}."
-    severity_in_order = ['Catastrophic', 'Severe', 'Moderate', 'Minor']
+    priority_in_order = ['Critical', 'High', 'Medium', 'Low']
     # 
     query = get_query(which, sentry_choice)
     defects = get_defects_filtered(jra, query)
     defect_buckets, histogram = bucketize(defects, bsize=bucketsize)
-    df = save_and_return_df(histogram, severity_in_order, bsize=bucketsize, filename="defects.csv")
+    df = save_and_return_df(histogram, priority_in_order, bsize=bucketsize, filename="defects.csv")
     # generate the figures
-    fig = px.line(df, x="days", y=severity_in_order, title=graph_title.format("defects", len(defects))).update_traces(mode="lines+markers")
+    fig = px.line(df, x="days", y=priority_in_order, title=graph_title.format("defects", len(defects))).update_traces(mode="lines+markers")
     # project pies
-    projdf = get_per_project_data(defects, severity)
+    projdf = get_per_project_data(defects, priority)
     projpie = px.pie(projdf, values="count", names="names")
-    statedf = get_per_state_data(defects, severity)
+    statedf = get_per_state_data(defects, priority)
     statepie = px.pie(statedf, values="count", names="names")
     return fig, projpie, statepie, bucketsize, which, sentry_choice
 
