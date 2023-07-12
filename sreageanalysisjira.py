@@ -56,6 +56,8 @@ def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="priority"):
     # counts = a count of cases per priority, and
     # ages =  an overall sum of ages (in hours) per priority, and
     # ages_lists = a list of ages in days
+    import pdb
+    pdb.set_trace()
     assert len(defects) == sum([counts[k] for k in counts.keys()])
     for k in counts.keys():
         ages[k] = int(ages[k] / (hours_per_day * counts[k]))

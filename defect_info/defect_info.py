@@ -90,7 +90,7 @@ def get_defects(jra, query):
         defect_info = []
         for d in defects_from_jira:
             di = DefectInfo()
-            setattr(di, 'id', d.id)
+            setattr(di, 'key', d.key)
             for ia in DefectInfo.interesting_fields:
                 if hasattr(d.fields, ia):
                     setattr(di, ia, getattr(d.fields, ia))
