@@ -1,0 +1,10 @@
+.idea/
+venv/
+__pycache__/
+htmlcov/
+.coverage
+*.pyc
+defects.cache
+defects.cache.*
+results.out.*
+
