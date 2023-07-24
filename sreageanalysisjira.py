@@ -6,9 +6,11 @@ import pandas as pd
 import plotly.express as px
 import dash
 
-from age_query_builder.age_query_builder import TR1_DEFECTS, FTC_DEFECTS, ALL_DEFECTS
+from age_query_builder.age_query_builder import TR1_DEFECTS, FTC_DEFECTS, TR2_DEFECTS, MR1_DEFECTS, ALL_DEFECTS
 from age_query_builder.age_query_builder import TR1_FIXED_QUERY, TR1_CLOSED_QUERY
-from age_query_builder.age_query_builder import FTC_FIXED_QUERY, TR1_CLOSED_QUERY
+from age_query_builder.age_query_builder import FTC_FIXED_QUERY, FTC_CLOSED_QUERY
+from age_query_builder.age_query_builder import TR2_FIXED_QUERY, TR2_CLOSED_QUERY
+from age_query_builder.age_query_builder import MR1_FIXED_QUERY, MR1_CLOSED_QUERY
 from age_query_builder.age_query_builder import CLOSED, FIXED
 from age_query_builder.age_query_builder import get_query
 from config import JIRA_API_TOKEN
@@ -44,20 +46,19 @@ def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="priority"):
     for d in defects:
         val = getattr(d, field, None)
         assert val is not None
+        fieldname = val.name  # OK for priority, not sure for others
         try:
-            counts[val] += 1
-            ages[val] += d.Age
-            ages_lists[val].append(int(d.Age / hours_per_day))
+            counts[fieldname] += 1
+            ages[fieldname] += d.Age
+            ages_lists[fieldname].append(int(d.Age / hours_per_day))
         except KeyError:
-            counts[val] = 1
-            ages[val] = d.Age
-            ages_lists[val] = [int(d.Age / hours_per_day)]
+            counts[fieldname] = 1
+            ages[fieldname] = d.Age
+            ages_lists[fieldname] = [int(d.Age / hours_per_day)]
     # at this point I have
     # counts = a count of cases per priority, and
     # ages =  an overall sum of ages (in hours) per priority, and
     # ages_lists = a list of ages in days
-    import pdb
-    pdb.set_trace()
     assert len(defects) == sum([counts[k] for k in counts.keys()])
     for k in counts.keys():
         ages[k] = int(ages[k] / (hours_per_day * counts[k]))
@@ -72,11 +73,11 @@ def bucketize(defects, bsize=DEFAULT_HIST_BUCKET_SIZE, field="priority"):
     return ages, ages_hists
 
 
-def save_and_return_df(thing, keys, bsize, filename):
+def save_and_return_df(histogram, keys, bsize, filename):
     toto = {}
     for k in keys:
         try:
-            toto[k] = list(thing[k][0])
+            toto[k] = list(histogram[k][0])
         except KeyError:
             toto[k] = [0]
     maxlength = 0
@@ -102,7 +103,7 @@ def build_page():
     for mk in range(minslider, maxslider, 2):
         slider_marks[mk] = str(mk)
     return html.Div(children=[
-        html.H1("Age of open defects tagged with sentry-gse, sentry-tr1."),
+        html.H1("Age of open defects tagged with sentry-gse, sentry-tr1, sentry-tr2, sentry-mr1."),
         html.Div(children=[
             html.Table([
                 html.Tr([
@@ -131,6 +132,8 @@ def build_page():
                             options=[
                                 {'label': 'TR1', 'value': TR1_DEFECTS},
                                 {'label': 'FTCSales', 'value': FTC_DEFECTS},
+                                {'label': 'TR2', 'value': TR2_DEFECTS},
+                                {'label': 'MR1', 'value': MR1_DEFECTS},
                                 {'label': 'All', 'value': ALL_DEFECTS}
                             ],
                             value=ALL_DEFECTS
@@ -249,6 +252,10 @@ def update(bucketsize, which, sentry_choice, priority):
             graph_title = "Age of unfixed {} TR1 defects. Total = {}."
         if sentry_choice == FTC_DEFECTS:
             graph_title = "Age of unfixed {} FTCSales defects. Total = {}."
+        if sentry_choice == TR2_DEFECTS:
+            graph_title = "Age of unfixed {} TR2 defects. Total = {}."
+        if sentry_choice == MR1_DEFECTS:
+            graph_title = "Age of unfixed {} MR1 defects. Total = {}."
         if sentry_choice == ALL_DEFECTS:
             graph_title = "Age of unfixed {} defects. Total = {}."
     else:
@@ -256,9 +263,13 @@ def update(bucketsize, which, sentry_choice, priority):
             graph_title = "Age of non-closed {} TR1 defects. Total = {}."
         if sentry_choice == FTC_DEFECTS:
             graph_title = "Age of non-closed {} FTCSales defects. Total = {}."
+        if sentry_choice == TR2_DEFECTS:
+            graph_title = "Age of non-closed {} TR2 defects. Total = {}."
+        if sentry_choice == MR1_DEFECTS:
+            graph_title = "Age of non-closed {} MR1 defects. Total = {}."
         if sentry_choice == ALL_DEFECTS:
             graph_title = "Age of non-closed {} defects. Total = {}."
-    priority_in_order = ['Critical', 'High', 'Medium', 'Low']
+    priority_in_order = ['Critical', 'P1', 'P2', 'P3']
     # 
     query = get_query(which, sentry_choice)
     defects = get_defects_filtered(jra, query)
