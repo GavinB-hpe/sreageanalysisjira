@@ -171,12 +171,12 @@ def build_page():
                             dcc.Dropdown(
                                 id='priority-dropdown',
                                 options=[
-                                    {'label': 'Low', 'value': 'Low'},
-                                    {'label': 'Medium', 'value': 'Medium'},
-                                    {'label': 'High', 'value': 'High'},
                                     {'label': 'Critical', 'value': 'Critical'},
+                                    {'label': 'P1', 'value': 'P1'},
+                                    {'label': 'P2', 'value': 'P2'},
+                                    {'label': 'P3', 'value': 'P3'},
                                 ],
-                                value=['Low', 'Medium', 'High', 'Critical'],
+                                value=['P3', 'P2', 'P1', 'Critical'],
                                 multi=True
                             )
                         )
@@ -204,8 +204,8 @@ app.layout = build_page()
 def get_per_project_data(defects, priority):
     db = {}
     for d in defects:
-        if d.priority in priority:
-            proj = d.Project
+        if d.priority.name in priority:
+            proj = d.project.key
             if db.get(proj) is None:
                 db[proj] = 1
             else:
@@ -220,8 +220,8 @@ def get_per_project_data(defects, priority):
 def get_per_state_data(defects, priority):
     db = {}
     for d in defects:
-        if d.priority in priority:
-            state = d.State
+        if d.priority.name in priority:
+            state = d.status.name
             if db.get(state) is None:
                 db[state] = 1
             else:

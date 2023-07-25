@@ -9,20 +9,20 @@ TR2_DEFECTS = 2
 MR1_DEFECTS = 2
 
 TR1_QUERY = 'labels in (sentry-tr1)'
-TR1_CLOSED_QUERY = TR1_QUERY
-TR1_FIXED_QUERY = TR1_QUERY
+TR1_CLOSED_QUERY = '(labels in (sentry-tr1)) and (status != Done)'
+TR1_FIXED_QUERY = '(labels in (sentry-tr1)) and (resolution = Unresolved)'
 FTC_QUERY = 'labels in (sentry-gse)'
-FTC_CLOSED_QUERY = FTC_QUERY
-FTC_FIXED_QUERY = FTC_QUERY
+FTC_CLOSED_QUERY = '(labels in (sentry-gse)) and (status != Done)'
+FTC_FIXED_QUERY = '(labels in (sentry-gse)) and (resolution = Unresolved)'
 TR2_QUERY = 'labels in (sentry-tr2)'
-TR2_CLOSED_QUERY = TR2_QUERY
-TR2_FIXED_QUERY = TR2_QUERY
+TR2_CLOSED_QUERY = '(labels in (sentry-tr2)) and (status != Done)'
+TR2_FIXED_QUERY = '(labels in (sentry-tr2)) and (resolution = Unresolved)'
 MR1_QUERY = 'labels in (sentry-mr1)'
-MR1_CLOSED_QUERY = MR1_QUERY
-MR1_FIXED_QUERY = MR1_QUERY
+MR1_CLOSED_QUERY = '(labels in (sentry-mr1)) and (status != Done)'
+MR1_FIXED_QUERY = '(labels in (sentry-mr1)) and (resolution = Unresolved)'
 ALL_QUERY = 'labels in (sentry-gse, sentry-tr1, sentry-tr2, sentry-mr1)'
-ALL_CLOSED_QUERY = ALL_QUERY
-ALL_FIXED_QUERY = ALL_QUERY
+ALL_CLOSED_QUERY = '(labels in (sentry-gse, sentry-tr1, sentry-tr2, sentry-mr1)) and (status != Done)'
+ALL_FIXED_QUERY = '(labels in (sentry-gse, sentry-tr1, sentry-tr2, sentry-mr1)) and (resolution = Unresolved)'
 
 def get_query(which=CLOSED, choice=ALL_DEFECTS):
     if choice == ALL_DEFECTS:
