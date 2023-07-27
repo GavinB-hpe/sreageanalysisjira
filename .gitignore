@@ -7,4 +7,5 @@ htmlcov/
 defects.cache
 defects.cache.*
 results.out.*
+creds.env
 
